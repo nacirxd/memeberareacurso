@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Área de Aulas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif;}
+    body {background: #121212; color: #f5f5f5; display: flex; height: 100vh; overflow: hidden;}
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: #1f1f1f;
+      padding: 30px 20px;
+      overflow-y: auto;
+      border-right: 1px solid #333;
+      transition: transform 0.3s ease-in-out;
+    }
+    .sidebar h2 { font-size: 1.2rem; margin-bottom: 20px; color: #fff; }
+
+    /* Progresso */
+    .progress-container { margin-bottom: 20px; }
+    .progress-label { font-size: 0.9rem; margin-bottom: 5px; color: #ccc; }
+    .progress-bar {
+      width: 100%; height: 8px; background: #333;
+      border-radius: 5px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; width: 0%;
+      background: #4caf50; transition: width 0.3s ease;
+    }
+
+    .lesson {
+      background: #2a2a2a; margin-bottom: 12px; padding: 12px 16px;
+      border-radius: 8px; cursor: pointer; transition: 0.2s;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .lesson:hover { background: #3a3a3a; }
+    .lesson.active { background: #4caf50; color: #fff; font-weight: 600; }
+    .lesson .check { font-size: 1.2rem; display: none; }
+    .lesson.completed .check { display: inline; color: #4caf50; }
+
+    /* Content */
+    .content { flex: 1; padding: 40px; overflow-y: auto; }
+    .video-wrapper {
+      position: relative; padding-top: 56.25%; border-radius: 12px;
+      overflow: hidden; margin-bottom: 30px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      max-width: 100%;
+    }
+    .video-wrapper iframe {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; border: none;
+    }
+    .lesson-title { font-size: 1.5rem; margin-bottom: 10px; }
+    .lesson-desc { font-size: 1rem; color: #ccc; }
+
+    /* Botão próxima aula fixo */
+    .next-lesson-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      padding: 14px 22px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+      z-index: 9999;
+      transition: 0.3s;
+    }
+    .next-lesson-btn:hover { background: #45a049; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #1f1f1f; }
+    ::-webkit-scrollbar-thumb { background: #444; border-radius: 8px; }
+
+    /* Botões Mobile */
+    .menu-btn, .continue-btn {
+      display: none; position: fixed; top: 15px; left: 15px;
+      background: #4caf50; color: white; border: none;
+      padding: 10px 15px; border-radius: 6px;
+      cursor: pointer; z-index: 1000;
+    }
+    .continue-btn { top: 60px; background: #2196f3; }
+
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .sidebar {
+        position: fixed; top: 0; left: 0; height: 100%;
+        transform: translateX(-100%); z-index: 999;
+      }
+      .sidebar.show { transform: translateX(0); }
+      .content { padding: 20px; }
+      .menu-btn, .continue-btn { display: block; }
+    }
+    @media (max-width: 500px) {
+      .lesson-title { font-size: 1.2rem; }
+      .lesson-desc { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <button class="menu-btn" onclick="toggleMenu()">☰ Aulas</button>
+  <button class="continue-btn" id="continueBtn" onclick="continueLastLesson()">▶ Continuar</button>
+
+  <div class="sidebar" id="sidebar">
+    <h2>Módulos</h2>
+
+    <div class="progress-container">
+      <div class="progress-label" id="progressText">Progresso: 0/5</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="lesson active" data-video="https://www.youtube.com/embed/VDLbTX3llXE?enablejsapi=1"
+         data-title="1 - HOW TO DOWNLOAD THE PREMISE"
+         data-desc="In this lesson you will learn how to download the app and start earning.">
+      1 - HOW TO DOWNLOAD THE PREMISE <span class="check">✅</span>
+    </div>
+    <div class="lesson" data-video="https://www.youtube.com/embed/DALyI_9VW8E?enablejsapi=1"
+         data-title="2 - HOW TO CREATE A PREMISE ACCOUNT"
+         data-desc="In this lesson, you will learn how to install all the necessary resources to start your project correctly.">
+      2 - HOW TO CREATE A PREMISE ACCOUNT <span class="check">✅</span>
+    </div>
+    <div class="lesson" data-video="https://www.youtube.com/embed/nNJRFtxPoao?enablejsapi=1"
+         data-title="3 - HOW TO PERFORM TASKS WITHIN THE PREMISE"
+         data-desc="In this lesson, you will learn how to complete tasks within the tool and earn rewards.">
+      3 - HOW TO PERFORM TASKS WITHIN THE PREMISE <span class="check">✅</span>
+    </div>
+    <div class="lesson" data-video="https://www.youtube.com/embed/iDIVkY57Kmo?enablejsapi=1"
+         data-title="4 - HOW TO MAKE A WITHDRAWAL AT PREMISE"
+         data-desc="Learn how to make withdrawals quickly and securely within the tool.">
+      4 - HOW TO MAKE A WITHDRAWAL AT PREMISE <span class="check">✅</span>
+    </div>
+    <div class="lesson" data-video="https://www.youtube.com/embed/TE_FDBzjXMI?enablejsapi=1"
+         data-title="5 - HOW TO CREATE A PAYPAL ACCOUNT"
+         data-desc="In this lesson you will learn how to create a PayPal account to receive your payments.">
+      5 - How to create a PayPal account and withdraw funds<span class="check">✅</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="video-wrapper">
+      <iframe id="videoFrame" src="https://www.youtube.com/embed/VDLbTX3llXE?enablejsapi=1" allow="autoplay" allowfullscreen></iframe>
+    </div>
+    <div class="lesson-title" id="lessonTitle">1 - HOW TO DOWNLOAD THE PREMISE</div>
+    <div class="lesson-desc" id="lessonDesc">In this lesson you will learn how to download the app and start earning.</div>
+  </div>
+
+  <!-- Botão de próxima aula fixo -->
+  <button class="next-lesson-btn" id="nextLessonBtn">Próxima Aula ➜</button>
+
+  <script>
+  const lessons = document.querySelectorAll('.lesson');
+  const videoFrame = document.getElementById('videoFrame');
+  const lessonTitle = document.getElementById('lessonTitle');
+  const lessonDesc = document.getElementById('lessonDesc');
+  const progressText = document.getElementById('progressText');
+  const progressFill = document.getElementById('progressFill');
+  const continueBtn = document.getElementById('continueBtn');
+  const nextLessonBtn = document.getElementById('nextLessonBtn');
+
+  function saveProgress(video, title, desc) {
+    localStorage.setItem('lastLesson', JSON.stringify({ video, title, desc }));
+    let completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '[]');
+    if (!completedLessons.includes(video)) {
+      completedLessons.push(video);
+      localStorage.setItem('completedLessons', JSON.stringify(completedLessons));
+    }
+  }
+
+  function updateProgress() {
+    const completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '[]');
+    const total = lessons.length;
+    const completed = completedLessons.length;
+    progressText.textContent = `Progresso: ${completed}/${total}`;
+    progressFill.style.width = `${(completed / total) * 100}%`;
+  }
+
+  function loadProgress() {
+    const lastLesson = JSON.parse(localStorage.getItem('lastLesson') || '{}');
+    const completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '[]');
+
+    lessons.forEach(lesson => {
+      lesson.classList.remove('active');
+      if (completedLessons.includes(lesson.dataset.video)) {
+        lesson.classList.add('completed');
+      }
+    });
+
+    if (lastLesson.video) {
+      const current = Array.from(lessons).find(l => l.dataset.video === lastLesson.video);
+      if (current) {
+        current.classList.add('active', 'completed');
+        videoFrame.src = lastLesson.video;
+        lessonTitle.textContent = lastLesson.title;
+        lessonDesc.textContent = lastLesson.desc;
+      }
+    } else {
+      // Se nunca assistiu nada, inicia automaticamente na primeira aula
+      const firstLesson = lessons[0];
+      firstLesson.classList.add('active', 'completed');
+      videoFrame.src = firstLesson.dataset.video;
+      lessonTitle.textContent = firstLesson.dataset.title;
+      lessonDesc.textContent = firstLesson.dataset.desc;
+      saveProgress(firstLesson.dataset.video, firstLesson.dataset.title, firstLesson.dataset.desc);
+    }
+
+    continueBtn.style.display = localStorage.getItem('lastLesson') ? 'block' : 'none';
+    updateProgress();
+  }
+
+  function nextLesson() {
+    const activeLesson = document.querySelector('.lesson.active');
+    const nextLesson = activeLesson?.nextElementSibling;
+    if (nextLesson) nextLesson.click();
+  }
+
+  lessons.forEach(lesson => {
+    lesson.addEventListener('click', () => {
+      lessons.forEach(l => l.classList.remove('active'));
+      lesson.classList.add('active', 'completed');
+
+      videoFrame.src = lesson.dataset.video;
+      lessonTitle.textContent = lesson.dataset.title;
+      lessonDesc.textContent = lesson.dataset.desc;
+
+      saveProgress(lesson.dataset.video, lesson.dataset.title, lesson.dataset.desc);
+      document.getElementById('sidebar').classList.remove('show');
+      updateProgress();
+    });
+  });
+
+  nextLessonBtn.addEventListener('click', nextLesson);
+
+  function toggleMenu() {
+    document.getElementById('sidebar').classList.toggle('show');
+  }
+
+  function continueLastLesson() {
+    const lastLesson = JSON.parse(localStorage.getItem('lastLesson') || '{}');
+    if (!lastLesson.video) return;
+    videoFrame.src = lastLesson.video;
+    lessonTitle.textContent = lastLesson.title;
+    lessonDesc.textContent = lastLesson.desc;
+    lessons.forEach(lesson => {
+      lesson.classList.remove('active');
+      if (lesson.dataset.video === lastLesson.video) {
+        lesson.classList.add('active', 'completed');
+      }
+    });
+    document.getElementById('sidebar').classList.remove('show');
+  }
+
+  // Agora carrega a primeira aula automaticamente
+  loadProgress();
+</script>
+
+</body>
+</html>
